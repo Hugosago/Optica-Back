@@ -12,7 +12,7 @@ export interface Cliente {
   PersonaID: number;
   edad: number;
   ocupacion: string;
-  domicilio: string;
+  Domicilio: string;
   ciudad: string;
 }
 
