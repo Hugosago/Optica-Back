@@ -1,0 +1,152 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Óptica API",
+    "version": "1.0.0",
+    "description": "API para la gestión de ópticas"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Servidor local"
+    }
+  ],
+  "paths": {
+    "/personas": {
+      "get": {
+        "summary": "Obtiene todas las personas",
+        "tags": ["Personas"],
+        "responses": {
+          "200": {
+            "description": "Lista de personas obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Persona"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crea una nueva persona",
+        "tags": ["Personas"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Persona"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Persona creada exitosamente"
+          }
+        }
+      }
+    },
+    "/personas/{id}": {
+      "get": {
+        "summary": "Obtiene una persona por ID",
+        "tags": ["Personas"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID de la persona a obtener"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persona encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Persona"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Persona no encontrada"
+          }
+        }
+      },
+      "put": {
+        "summary": "Actualiza una persona por ID",
+        "tags": ["Personas"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID de la persona a actualizar"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Persona"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Persona actualizada exitosamente"
+          },
+          "404": {
+            "description": "Persona no encontrada"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Elimina una persona por ID",
+        "tags": ["Personas"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID de la persona a eliminar"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persona eliminada exitosamente"
+          },
+          "404": {
+            "description": "Persona no encontrada"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Persona": {
+        "type": "object",
+        "properties": {
+          "PersonaID": { "type": "string" },
+          "Nombre": { "type": "string" },
+          "Apellidos": { "type": "string" },
+          "Contrasenia": { "type": "string" },
+          "CorreoElectronico": { "type": "string" }
+        }
+      }
+    }
+  }
+}

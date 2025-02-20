@@ -30,20 +30,50 @@ export const getPersonas = async (ctx: Context) => {
   }
 };
 
+
+export const getPersonaById = async (ctx: RouterContext<"/personas/:id">) => {
+  const id = ctx.params.id; // Obtener el ID de los parámetros de la ruta
+
+  if (!id) {
+    ctx.response.body = { message: "ID no proporcionado" };
+    ctx.response.status = 400;
+    return;
+  }
+
+  try {
+    // Consultar la persona por ID
+    const personas = await client.query("SELECT * FROM personas WHERE PersonaID = ?", [id]);
+
+    if (personas.length === 0) {
+      ctx.response.status = 404;
+      ctx.response.body = { message: "Persona no encontrada" };
+    } else {
+      ctx.response.status = 200;
+      ctx.response.body = personas[0];
+    }
+  } catch (error) {
+    ctx.response.status = 500;
+    ctx.response.body = {
+      message: "Error al obtener la persona",
+      error: (error as Error).message,
+    };
+  }
+};
+
+
 // Controlador para crear una nueva persona
 export const createPersona = async (ctx: Context) => {
   try {
     const body = await ctx.request.body().value;
 
-    // Validar los datos usando el esquema
-    const datosValidados: Persona = PersonaSchema.parse(body);
+    // Validar los datos sin PersonaID
+    const datosValidados = PersonaSchema.omit({ PersonaID: true }).parse(body);
 
-    // Insertar en la base de datos
+    // Insertar en la base de datos (sin PersonaID)
     await client.execute(
-      `INSERT INTO personas (PersonaID, Nombre, Apellidos, Contrasenia, CorreoElectronico)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO personas (Nombre, Apellidos, Contrasenia, CorreoElectronico)
+       VALUES (?, ?, ?, ?)`,
       [
-        datosValidados.PersonaID,
         datosValidados.Nombre,
         datosValidados.Apellidos,
         datosValidados.Contrasenia,
@@ -53,47 +83,86 @@ export const createPersona = async (ctx: Context) => {
 
     ctx.response.body = { message: "Persona creada exitosamente" };
     ctx.response.status = 201;
-  }catch (error) {
+  } catch (error) {
     ctx.response.body = {
       message: "Error al crear la persona",
       error: 
-        (error && typeof error === "object" && "errors" in error && error.errors) || // Si tiene `errors`
-        (error instanceof Error && error.message) || // Si es una instancia de `Error`
-        "Error desconocido", // Valor predeterminado
+        (error && typeof error === "object" && "errors" in error && error.errors) || 
+        (error instanceof Error && error.message) || 
+        "Error desconocido",
     };
     ctx.response.status = 400; // Bad Request
   }
-  
 };
+
+
 // Controlador para modificar una persona
 
 export const updatePersona = async (ctx: RouterContext<"/personas/:id">) => {
   const id = ctx.params.id; // Obtener el ID de los parámetros de la ruta
   const body = await ctx.request.body().value;
-  const { Nombre, Apellidos, Contrasenia, CorreoElectronico } = body;
 
   try {
-    // Actualizar la persona con el ID especificado
+    // Validar que al menos un campo haya sido enviado
+    if (Object.keys(body).length === 0) {
+      ctx.response.status = 400;
+      ctx.response.body = { message: "Debe enviar al menos un campo para actualizar" };
+      return;
+    }
+
+    // Construir dinámicamente la consulta SQL según los campos enviados
+    const fields = [];
+    const values = [];
+
+    if (body.Nombre) {
+      fields.push("Nombre = ?");
+      values.push(body.Nombre);
+    }
+    if (body.Apellidos) {
+      fields.push("Apellidos = ?");
+      values.push(body.Apellidos);
+    }
+    if (body.Contrasenia) {
+      fields.push("Contrasenia = ?");
+      values.push(body.Contrasenia);
+    }
+    if (body.CorreoElectronico) {
+      fields.push("CorreoElectronico = ?");
+      values.push(body.CorreoElectronico);
+    }
+
+    // Verificar si hay campos a actualizar
+    if (fields.length === 0) {
+      ctx.response.status = 400;
+      ctx.response.body = { message: "No se enviaron datos válidos para actualizar" };
+      return;
+    }
+
+    // Agregar el ID al final de los valores para la consulta
+    values.push(id);
+
+    // Ejecutar la consulta de actualización
     const result = await client.execute(
-      `UPDATE personas SET Nombre = ?, Apellidos = ?, Contrasenia = ?, CorreoElectronico = ? WHERE PersonaID = ?`,
-      [Nombre, Apellidos, Contrasenia, CorreoElectronico, id],
+      `UPDATE personas SET ${fields.join(", ")} WHERE PersonaID = ?`,
+      values,
     );
 
     if (result.affectedRows === 0) {
-      ctx.response.body = { message: "Persona no encontrada" };
       ctx.response.status = 404;
+      ctx.response.body = { message: "Persona no encontrada" };
     } else {
-      ctx.response.body = { message: "Persona actualizada exitosamente" };
       ctx.response.status = 200;
+      ctx.response.body = { message: "Persona actualizada exitosamente" };
     }
   } catch (error) {
+    ctx.response.status = 500;
     ctx.response.body = {
       message: "Error al actualizar la persona",
       error: (error as Error).message,
     };
-    ctx.response.status = 500;
   }
 };
+
 
 // Controlador para eliminar una persona
 // Controlador para eliminar una persona
