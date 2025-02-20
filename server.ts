@@ -1,25 +1,55 @@
-import { Application } from "https://deno.land/x/oak@v12.1.0/mod.ts";
-import router from "./routes/routes.ts";
+import { Application, Router, send } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 import { dbClient } from "./config/database.ts";
+import router from "./routes/routes.ts";
 
 const app = new Application();
 
-// Verifica la conexión a la base de datos
-try {
-  await dbClient.execute("SELECT 1"); // Prueba básica de conexión
-  console.log("Conexión a la base de datos exitosa");
-} catch (error) {
-  if (error instanceof Error) {
-    console.error("Error al conectar a la base de datos:", error.message);
-  } else {
-    console.error("Error inesperado:", error);
+// Ruta para servir `swagger.json`
+router.get("swagger.json", async (context) => {
+  const filePath = `${Deno.cwd()}./swagger-ui/swagger.json`;
+  console.log("Intentando servir:", filePath); // Log para depuración
+  try {
+    const swaggerJson = await Deno.readTextFile(filePath);
+    context.response.headers.set("Content-Type", "application/json");
+    context.response.body = swaggerJson;
+  } catch (error) {
+    console.error("Error al cargar swagger.json:", error);
+    context.response.status = 404;
+    context.response.body = { message: "Archivo swagger.json no encontrado" };
   }
-  Deno.exit(1); // Termina el proceso si no hay conexión
-}
+});
 
-// Configura rutas
 app.use(router.routes());
 app.use(router.allowedMethods());
 
+// Middleware para servir contenido estático de la carpeta `swagger-ui`
+app.use(async (context, next) => {
+  const path = context.request.url.pathname;
+  console.log(`${Deno.cwd()}\\swagger-ui`);
+  console.log("Ruta solicitada:", path); // Log para ver qué ruta intenta cargar
+  try {
+    
+    await send(context, path, {
+      root: `${Deno.cwd()}\\swagger-ui`,
+      index: "index.html", // Sirve index.html por defecto si accede a `/swagger`
+    });
+  } catch (error) {
+    console.error("Error al servir archivo:", error);
+    context.response.status = 404;
+    context.response.body = { message: "Archivo no encontrado" };
+    await next();
+  }
+});
+
+// Verifica la conexión a la base de datos
+try {
+  await dbClient.execute("SELECT 1");
+  console.log("Conexión a la base de datos exitosa");
+} catch (error) {
+  console.error("Error al conectar a la base de datos:", error);
+  Deno.exit(1);
+}
+
 console.log("Servidor corriendo en http://localhost:8000");
+console.log("Swagger disponible en http://localhost:8000/swagger");
 await app.listen({ port: 8000 });
