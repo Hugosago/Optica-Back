@@ -1,13 +1,21 @@
 import { Application, Router, send } from "https://deno.land/x/oak@v12.1.0/mod.ts";
+import { oakCors } from "https://deno.land/x/cors/mod.ts";
 import { dbClient } from "./config/database.ts";
 import router from "./routes/routes.ts";
 
 const app = new Application();
 
+// Habilitar CORS
+app.use(oakCors({
+  origin: "*", // Permitir cualquier origen, puedes especificar uno en particular
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
 // Ruta para servir `swagger.json`
 router.get("swagger.json", async (context) => {
-  const filePath = `${Deno.cwd()}./swagger-ui/swagger.json`;
-  console.log("Intentando servir:", filePath); // Log para depuración
+  const filePath = `${Deno.cwd()}/swagger-ui/swagger.json`;
+  console.log("Intentando servir:", filePath);
   try {
     const swaggerJson = await Deno.readTextFile(filePath);
     context.response.headers.set("Content-Type", "application/json");
@@ -25,13 +33,11 @@ app.use(router.allowedMethods());
 // Middleware para servir contenido estático de la carpeta `swagger-ui`
 app.use(async (context, next) => {
   const path = context.request.url.pathname;
-  console.log(`${Deno.cwd()}\\swagger-ui`);
-  console.log("Ruta solicitada:", path); // Log para ver qué ruta intenta cargar
+  console.log("Ruta solicitada:", path);
   try {
-    
     await send(context, path, {
-      root: `${Deno.cwd()}\\swagger-ui`,
-      index: "index.html", // Sirve index.html por defecto si accede a `/swagger`
+      root: `${Deno.cwd()}/swagger-ui`,
+      index: "index.html",
     });
   } catch (error) {
     console.error("Error al servir archivo:", error);
