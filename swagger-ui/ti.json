@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Óptica API",
+    "title": "Óptica API",
     "version": "1.0.0",
-    "description": "API para la gestión de ópticas"
+    "description": "API para la gestión de ópticas"
   },
   "servers": [
     {
@@ -299,39 +299,6 @@
           },
           "404": {
             "description": "Producto no encontrado"
-          }
-        }
-      }
-    },
-    "/productos/search": {
-      "get": {
-        "summary": "Busca productos por nombre",
-        "tags": ["Productos"],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "nombre",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Nombre (o parte del nombre) del producto a buscar"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lista de productos encontrados",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Producto"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No se encontraron productos"
           }
         }
       }

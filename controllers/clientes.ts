@@ -43,3 +43,24 @@ export const createClient = async (ctx: Context) => {
     }
   }
 };
+
+
+export const obtenerClientes = async (ctx: Context) => {
+  try {
+    // Especificamos que el resultado es un array de objetos con PersonaID como número
+    const clientes: { PersonaID: number }[] = await client.query(`SELECT PersonaID FROM clientes`);
+
+    ctx.response.body = {
+      mensaje: "Lista de clientes obtenida correctamente",
+      clientes: clientes.map((cliente) => cliente.PersonaID), // Extrae solo los IDs
+    };
+    ctx.response.status = 200;
+  } catch (error) {
+    console.error("Error al obtener clientes:", error);
+    ctx.response.body = {
+      mensaje: "Error al obtener clientes",
+      error: error instanceof Error ? error.message : JSON.stringify(error),
+    };
+    ctx.response.status = 500;
+  }
+};
