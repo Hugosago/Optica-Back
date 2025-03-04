@@ -47,6 +47,46 @@ export const getProductoById = async (ctx: RouterContext<"/productos/:id">) => {
 export const createProducto = async (ctx: Context) => {
   try {
     const body = await ctx.request.body().value;
+
+    // Convertir valores a número
+    const tipoId = parseInt(body.Tipo);
+    const materialId = parseInt(body.Material);
+
+    if (isNaN(tipoId) || isNaN(materialId)) {
+      ctx.response.status = 400;
+      ctx.response.body = { message: "Error: Tipo y Material deben ser números válidos." };
+      return;
+    }
+
+    // Verificar si el Tipo existe en la base de datos
+    const [tipoExiste] = await client.query(
+      `SELECT ID FROM tipo_lentes WHERE ID = ?`,
+      [tipoId]
+    );
+
+    if (!tipoExiste) {
+      ctx.response.status = 400;
+      ctx.response.body = {
+        message: `Error: No existe un tipo de lente con ID ${tipoId}.`,
+      };
+      return;
+    }
+
+    // Verificar si el Material existe en la base de datos
+    const [materialExiste] = await client.query(
+      `SELECT ID FROM tipo_material WHERE ID = ?`,
+      [materialId]
+    );
+
+    if (!materialExiste) {
+      ctx.response.status = 400;
+      ctx.response.body = {
+        message: `Error: No existe un material con ID ${materialId}.`,
+      };
+      return;
+    }
+
+    // Insertar el producto en la base de datos
     await client.execute(
       `INSERT INTO productos (Nombre, Descripcion, Precio_Normal, Precio_Oferta, Imagen, Cantidad, Marca, Modelo, Edad, Genero, Categoria, Material, Tamaño, Color, Tipo)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -62,22 +102,29 @@ export const createProducto = async (ctx: Context) => {
         body.Edad,
         body.Genero,
         body.Categoria,
-        body.Material,
+        materialId,
         body.Tamaño,
         body.Color,
-        body.Tipo,
-      ],
+        tipoId,
+      ]
     );
+
     ctx.response.status = 201;
     ctx.response.body = { message: "Producto creado exitosamente" };
   } catch (error) {
-    ctx.response.status = 400;
+    ctx.response.status = 500;
     ctx.response.body = {
       message: "Error al crear el producto",
       error: error instanceof Error ? error.message : String(error),
     };
   }
 };
+
+
+
+
+
+
 
 export const updateProducto = async (ctx: RouterContext<"/productos/:id">) => {
   try {
@@ -93,14 +140,57 @@ export const updateProducto = async (ctx: RouterContext<"/productos/:id">) => {
       return;
     }
 
+    // Validar si el producto existe antes de actualizar
+    const [productoExiste] = await client.query(
+      `SELECT ID FROM productos WHERE ID = ?`,
+      [id]
+    );
+
+    if (!productoExiste) {
+      ctx.response.status = 404;
+      ctx.response.body = { message: "Error: El producto no existe." };
+      return;
+    }
+
+    // Validar si se está intentando actualizar "Material" o "Tipo"
+    if (body.Material) {
+      const [materialExiste] = await client.query(
+        `SELECT ID FROM tipo_material WHERE ID = ?`,
+        [body.Material]
+      );
+
+      if (!materialExiste) {
+        ctx.response.status = 400;
+        ctx.response.body = {
+          message: `Error: No existe un material con ID ${body.Material}.`,
+        };
+        return;
+      }
+    }
+
+    if (body.Tipo) {
+      const [tipoExiste] = await client.query(
+        `SELECT ID FROM tipo_lentes WHERE ID = ?`,
+        [body.Tipo]
+      );
+
+      if (!tipoExiste) {
+        ctx.response.status = 400;
+        ctx.response.body = {
+          message: `Error: No existe un tipo de lente con ID ${body.Tipo}.`,
+        };
+        return;
+      }
+    }
+
     // Construir consulta SQL dinámica
     const fields = Object.keys(body).map((key) => `${key} = ?`).join(", ");
     const values = Object.values(body);
-    values.push(id); // Agregar el ID al final para la condición WHERE
+    values.push(id); // Agregar el ID al final para el WHERE
 
     const result = await client.execute(
       `UPDATE productos SET ${fields} WHERE ID = ?`,
-      values,
+      values
     );
 
     if (result.affectedRows === 0) {
@@ -118,6 +208,7 @@ export const updateProducto = async (ctx: RouterContext<"/productos/:id">) => {
     };
   }
 };
+
 
 export const deleteProducto = async (ctx: RouterContext<"/productos/:id">) => {
   try {
