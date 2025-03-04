@@ -53,4 +53,4 @@ app.use(async (context, next) => {
 
 console.log("Servidor corriendo en http://localhost:8000");
 console.log("Swagger disponible en http://localhost:8000/swagger");
-serve(() => new Response('El servidor está corriendo'));
+await app.listen();
