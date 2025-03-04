@@ -1,5 +1,6 @@
 import { Application, Router, send } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
+import {serve} from 'https://deno.land/std@0.223.0/http/server.ts';
 import { dbClient } from "./config/database.ts";
 import router from "./routes/routes.ts";
 
@@ -52,4 +53,4 @@ app.use(async (context, next) => {
 
 console.log("Servidor corriendo en http://localhost:8000");
 console.log("Swagger disponible en http://localhost:8000/swagger");
-await app.listen({ port: 8000 });
+serve(() => new Response('El servidor está corriendo'));
