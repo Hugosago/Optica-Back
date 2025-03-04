@@ -48,13 +48,7 @@ app.use(async (context, next) => {
 });
 
 // Verifica la conexión a la base de datos
-try {
-  await dbClient.execute("SELECT 1");
-  console.log("Conexión a la base de datos exitosa");
-} catch (error) {
-  console.error("Error al conectar a la base de datos:", error);
-  Deno.exit(1);
-}
+
 
 console.log("Servidor corriendo en http://localhost:8000");
 console.log("Swagger disponible en http://localhost:8000/swagger");
