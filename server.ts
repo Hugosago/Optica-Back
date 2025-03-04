@@ -53,4 +53,8 @@ app.use(async (context, next) => {
 
 console.log("Servidor corriendo en http://localhost:8000");
 console.log("Swagger disponible en http://localhost:8000/swagger");
-await app.listen();
+Deno.serve(async (req: Request) => {
+  const res = await app.handle(req);
+  return res ?? new Response("Not Found", { status: 404 });
+});
+
