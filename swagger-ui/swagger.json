@@ -153,7 +153,7 @@
             "description": "Cliente creado exitosamente"
           },
           "400": {
-            "description": "Error de validación"
+            "description": "Error de validación"
           },
           "500": {
             "description": "Error al crear cliente"
@@ -280,7 +280,6 @@
           }
         }
       },
-
       "delete": {
         "summary": "Elimina un producto por ID",
         "tags": ["Productos"],
@@ -335,6 +334,48 @@
           }
         }
       }
+    },
+    "/tipo_lentes": {
+      "get": {
+        "summary": "Obtiene todos los tipos de lentes",
+        "tags": ["Lentes"],
+        "responses": {
+          "200": {
+            "description": "Lista de tipos de lentes obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tipo_Lentes"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tipo_material": {
+      "get": {
+        "summary": "Obtiene todos los tipos de materiales",
+        "tags": ["Material"],
+        "responses": {
+          "200": {
+            "description": "Lista de tipos de materiales obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tipo_Materiales"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -374,13 +415,10 @@
           },
           "Categoria": {
             "type": "string",
-            "enum": ["Sol", "Lectura", "Protección"]
+            "enum": ["Sol", "Lectura", "Protección"]
           },
-          "Material": {
-            "type": "string",
-            "enum": ["Acero", "Acetato", "Metal", "Titanio"]
-          },
-          "Tamaño": {
+          "Material": { "type": "number" },
+          "Tamaño": {
             "type": "string",
             "enum": [
               "Chico",
@@ -391,10 +429,22 @@
             ]
           },
           "Color": { "type": "string" },
-          "Tipo": {
-            "type": "string",
-            "enum": ["Aviador", "Redondo", "Cuadrado"]
-          }
+          "Tipo": { "type": "number" }
+        }
+      },
+      "Tipo_Lentes": {
+        "type": "object",
+        "properties": {
+          "ID": { "type": "number" },
+          "Nombre": { "type": "string" },
+          "Imagen": { "type": "string" }
+        }
+      },
+      "Tipo_Materiales": {
+        "type": "object",
+        "properties": {
+          "ID": { "type": "number" },
+          "Nombre": { "type": "string" }
         }
       }
     }
