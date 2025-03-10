@@ -14,7 +14,7 @@ app.use(oakCors({
 }));
 
 // Ruta para servir `swagger.json`
-router.get("swagger.json", async (context) => {
+router.get("/swagger.json", async (context) => {
   const filePath = `${Deno.cwd()}/swagger-ui/swagger.json`;
   console.log("Intentando servir:", filePath);
   try {
@@ -28,15 +28,20 @@ router.get("swagger.json", async (context) => {
   }
 });
 
-app.use(router.routes());
-app.use(router.allowedMethods());
-
-// Middleware para servir contenido estático de la carpeta `swagger-ui`
-app.use(async (context, next) => {
-  const path = context.request.url.pathname;
-  console.log("Ruta solicitada:", path);
+// Ruta de autenticación con Google OAuth
+export async function authenticateUser(token: string, expoPushToken: string) {
   try {
-    await send(context, path, {
+    // Aquí iría la lógica para verificar el token de Google y autenticar al usuario
+    return { message: "success", token: "generated_token", code: 200 };
+  } catch (error) {
+    console.error("Error en autenticación:", error);
+    return { message: "Error interno en el servidor", code: 500 };
+  }
+}
+
+app.use(async (context, next) => {
+  try {
+    await send(context, context.request.url.pathname, {
       root: `${Deno.cwd()}/swagger-ui`,
       index: "index.html",
     });
@@ -44,7 +49,33 @@ app.use(async (context, next) => {
     console.error("Error al servir archivo:", error);
     context.response.status = 404;
     context.response.body = { message: "Archivo no encontrado" };
+  }
+  await next();
+});
+
+app.use(router.routes());
+app.use(router.allowedMethods());
+
+// Middleware para servir contenido estático de la carpeta `swagger-ui`
+app.use(async (context, next) => {
+  const path = context.request.url.pathname;
+  console.log("Ruta solicitada:", path);
+
+  // Evitar que el middleware `send` maneje rutas de la API
+  if (path.startsWith("/api")) {
     await next();
+    return;
+  }
+
+  try {
+    await send(context, path, {
+      root: `${Deno.cwd()}/swagger-ui`,
+      index: "index.html",
+    });
+  } catch (error) {
+    console.error("Error al servir archivo estático:", error);
+    context.response.status = 404;
+    context.response.body = { message: "Archivo no encontrado" };
   }
 });
 

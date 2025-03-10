@@ -376,76 +376,236 @@
           }
         }
       }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Persona": {
-        "type": "object",
-        "properties": {
-          "PersonaID": { "type": "string" },
-          "Nombre": { "type": "string" },
-          "Apellidos": { "type": "string" },
-          "Contrasenia": { "type": "string" },
-          "CorreoElectronico": { "type": "string" }
+    },
+    "/accesorios": {
+      "get": {
+        "summary": "Obtiene todos los accesorios",
+        "tags": ["Accesorios"],
+        "responses": {
+          "200": {
+            "description": "Lista de accesorios obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Accesorio"
+                  }
+                }
+              }
+            }
+          }
         }
-      },
-      "Cliente": {
-        "type": "object",
-        "properties": {
-          "PersonaID": { "type": "number" }
+      }
+    },
+    "/tipo_accesorios": {
+      "get": {
+        "summary": "Obtiene todos los tipos de accesorios",
+        "tags": ["Accesorios"],
+        "responses": {
+          "200": {
+            "description": "Lista de tipos de accesorios obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tipo_Accesorios"
+                  }
+                }
+              }
+            }
+          }
         }
-      },
-      "Producto": {
-        "type": "object",
-        "properties": {
-          "ID": { "type": "number" },
-          "Nombre": { "type": "string" },
-          "Descripcion": { "type": "string" },
-          "Precio_Normal": { "type": "number", "format": "float" },
-          "Precio_Oferta": { "type": "number", "format": "float" },
-          "Imagen": { "type": "string" },
-          "Cantidad": { "type": "integer" },
-          "Marca": { "type": "string" },
-          "Modelo": { "type": "string" },
-          "Edad": { "type": "integer" },
-          "Genero": {
-            "type": "string",
-            "enum": ["Masculino", "Femenino", "Unisex"]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Autentica al cliente con Google y devuelve un token",
+        "tags": ["Autenticación"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "googleToken": {
+                    "type": "string",
+                    "description": "Token de autenticación proporcionado por Google"
+                  }
+                },
+                "required": ["googleToken"]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "paths": {
+      "/api/auth": {
+        "post": {
+          "summary": "Autenticar usuario con Google OAuth",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "googleToken": { "type": "string" }
+                  },
+                  "required": ["googleToken"]
+                }
+              }
+            }
           },
-          "Categoria": {
-            "type": "string",
-            "enum": ["Sol", "Lectura", "Protección"]
-          },
-          "Material": { "type": "number" },
-          "Tamaño": {
-            "type": "string",
-            "enum": [
-              "Chico",
-              "Extra chico",
-              "Mediano",
-              "Grande",
-              "Extra grande"
-            ]
-          },
-          "Color": { "type": "string" },
-          "Tipo": { "type": "number" }
+          "responses": {
+            "200": {
+              "description": "Éxito",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" },
+                      "token": { "type": "string" },
+                      "code": { "type": "integer" }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "description": "Token de Google requerido" },
+            "401": { "description": "Token de Google inválido" },
+            "500": { "description": "Error interno en el servidor" }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Persona": {
+          "type": "object",
+          "properties": {
+            "PersonaID": { "type": "string" },
+            "Nombre": { "type": "string" },
+            "Apellidos": { "type": "string" },
+            "Contrasenia": { "type": "string" },
+            "CorreoElectronico": { "type": "string" }
+          }
+        },
+        "Cliente": {
+          "type": "object",
+          "properties": {
+            "PersonaID": { "type": "number" }
+          }
+        },
+        "Producto": {
+          "type": "object",
+          "properties": {
+            "ID": { "type": "number" },
+            "Nombre": { "type": "string" },
+            "Descripcion": { "type": "string" },
+            "Precio_Normal": { "type": "number", "format": "float" },
+            "Precio_Oferta": { "type": "number", "format": "float" },
+            "Imagen": { "type": "string" },
+            "Cantidad": { "type": "integer" },
+            "Marca": { "type": "string" },
+            "Modelo": { "type": "string" },
+            "Edad": { "type": "integer" },
+            "Genero": {
+              "type": "string",
+              "enum": ["Masculino", "Femenino", "Unisex"]
+            },
+            "Categoria": {
+              "type": "string",
+              "enum": ["Sol", "Lectura", "Protección"]
+            },
+            "Material": { "type": "number" },
+            "Tamaño": {
+              "type": "string",
+              "enum": [
+                "Chico",
+                "Extra chico",
+                "Mediano",
+                "Grande",
+                "Extra grande"
+              ]
+            },
+            "Color": { "type": "string" },
+            "Tipo": { "type": "number" }
+          }
+        },
+        "Tipo_Lentes": {
+          "type": "object",
+          "properties": {
+            "ID": { "type": "number" },
+            "Nombre": { "type": "string" },
+            "Imagen": { "type": "string" }
+          }
+        },
+        "Tipo_Materiales": {
+          "type": "object",
+          "properties": {
+            "ID": { "type": "number" },
+            "Nombre": { "type": "string" }
+          }
+        },
+        "Accesorio": {
+          "type": "object",
+          "properties": {
+            "ID": { "type": "number" },
+            "Nombre": { "type": "string" },
+            "Imagen": { "type": "string" },
+            "Tipo": { "type": "number" },
+            "Cantidad": { "type": "integer" },
+            "Descripcion": { "type": "string" },
+            "Marca": { "type": "string" },
+            "Modelo": { "type": "string" },
+            "Precio": { "type": "number", "format": "float" }
+          }
+        },
+        "Tipo_Accesorios": {
+          "type": "object",
+          "properties": {
+            "ID": { "type": "number" },
+            "Nombre": { "type": "string" }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Autenticación exitosa",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "success"
+                },
+                "token": {
+                  "type": "string",
+                  "description": "Token JWT generado"
+                },
+                "code": {
+                  "type": "integer",
+                  "example": 200
+                }
+              }
+            }
+          }
         }
       },
-      "Tipo_Lentes": {
-        "type": "object",
-        "properties": {
-          "ID": { "type": "number" },
-          "Nombre": { "type": "string" },
-          "Imagen": { "type": "string" }
-        }
+      "400": {
+        "description": "Token de Google inválido"
       },
-      "Tipo_Materiales": {
-        "type": "object",
-        "properties": {
-          "ID": { "type": "number" },
-          "Nombre": { "type": "string" }
-        }
+      "500": {
+        "description": "Error interno del servidor"
       }
     }
   }

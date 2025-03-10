@@ -51,6 +51,7 @@ export const createProducto = async (ctx: Context) => {
     // Convertir valores a número
     const tipoId = parseInt(body.Tipo);
     const materialId = parseInt(body.Material);
+    const categoriaId = parseInt(body.Categoria);
 
     if (isNaN(tipoId) || isNaN(materialId)) {
       ctx.response.status = 400;
@@ -86,6 +87,19 @@ export const createProducto = async (ctx: Context) => {
       return;
     }
 
+    const [categoriaExiste] = await client.query(
+      `SELECT ID FROM tipo_categoria WHERE ID = ?`,
+      [categoriaId]
+    );
+
+    if (!categoriaExiste){
+      ctx.response.status = 400;
+      ctx.response.body = {
+        message : `Error: No existe una categoria con ID ${categoriaId}.`,
+      };
+      return;
+    }
+
     // Insertar el producto en la base de datos
     await client.execute(
       `INSERT INTO productos (Nombre, Descripcion, Precio_Normal, Precio_Oferta, Imagen, Cantidad, Marca, Modelo, Edad, Genero, Categoria, Material, Tamaño, Color, Tipo)
@@ -101,7 +115,7 @@ export const createProducto = async (ctx: Context) => {
         body.Modelo,
         body.Edad,
         body.Genero,
-        body.Categoria,
+        categoriaId,
         materialId,
         body.Tamaño,
         body.Color,
@@ -163,6 +177,21 @@ export const updateProducto = async (ctx: RouterContext<"/productos/:id">) => {
         ctx.response.status = 400;
         ctx.response.body = {
           message: `Error: No existe un material con ID ${body.Material}.`,
+        };
+        return;
+      }
+    }
+
+    if (body.Categoria){
+      const [categoriaExiste] = await client.query(
+        `SELECT ID FROM tipo_categoria WHERE ID = ?`,
+        [body.Categoria]
+      );
+
+      if (!categoriaExiste){
+        ctx.response.status = 400;
+        ctx.response.body = {
+          message: `Error: No existe una categoria con ID ${body.Categoria}.`,
         };
         return;
       }
