@@ -1,5 +1,6 @@
 import { Application, Router, send } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
+import {serve} from 'https://deno.land/std@0.223.0/http/server.ts';
 import { dbClient } from "./config/database.ts";
 import router from "./routes/routes.ts";
 
@@ -79,14 +80,12 @@ app.use(async (context, next) => {
 });
 
 // Verifica la conexión a la base de datos
-try {
-  await dbClient.execute("SELECT 1");
-  console.log("Conexión a la base de datos exitosa");
-} catch (error) {
-  console.error("Error al conectar a la base de datos:", error);
-  Deno.exit(1);
-}
+
 
 console.log("Servidor corriendo en http://localhost:8000");
 console.log("Swagger disponible en http://localhost:8000/swagger");
-await app.listen({ port: 8000 });
+Deno.serve(async (req: Request) => {
+  const res = await app.handle(req);
+  return res ?? new Response("Not Found", { status: 404 });
+});
+
